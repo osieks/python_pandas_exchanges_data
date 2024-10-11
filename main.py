@@ -1,6 +1,9 @@
 import requests
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+from datetime import datetime
 
 # Function to request data from Binance API
 def get_binance_data(symbol, interval='1d', limit=100):
@@ -60,45 +63,81 @@ def combine_dataframes(df_binance, df_coingecko):
     df_combined = pd.merge(df_binance, df_coingecko, how='outer', left_on='Open Time', right_index=True)
     df_combined.rename(columns={'Open': 'Binance Price', 'Price': 'CoinGecko Price'}, inplace=True)
     
-    print(df_combined.head())  
-    print(df_combined.tail())
-    print(df_combined.describe)
+    #print(df_combined.head())  
+    #print(df_combined.tail())
+    #print(df_combined.describe)
+
+    # Calculate average price between Binance and CoinGecko
+    df_combined['Average Price'] = df_combined[['Binance Price', 'CoinGecko Price']].mean(axis=1)
 
     return df_combined
 
 # Function to calculate moving averages and the average of those
 def calculate_moving_averages(df_combined):
-    df_combined['Binance MA20'] = df_combined['Binance Price'].rolling(window=20).mean()
-    df_combined['CoinGecko MA20'] = df_combined['CoinGecko Price'].rolling(window=20).mean()
+    df_combined['MA20 Average'] = df_combined['Average Price'].rolling(window=20).mean()
 
-    df_combined['Binance MA50'] = df_combined['Binance Price'].rolling(window=50).mean()
-    df_combined['CoinGecko MA50'] = df_combined['CoinGecko Price'].rolling(window=50).mean()
-
-    df_combined['MA20 Average'] = df_combined[['Binance MA20', 'CoinGecko MA20']].mean(axis=1)
-    df_combined['MA50 Average'] = df_combined[['Binance MA50', 'CoinGecko MA50']].mean(axis=1)
+    df_combined['MA50 Average'] = df_combined['Average Price'].rolling(window=50).mean()
 
     return df_combined
 
+def calculate_trendline(x, y):
+    # Remove NaN values
+    mask = ~np.isnan(y)
+    x_clean = x[mask]
+    y_clean = y[mask]
+    
+    # Convert datetime to numerical value for regression
+    x_numeric = np.arange(len(x_clean)).reshape(-1, 1)
+    
+    # Perform linear regression
+    slope, intercept, r_value, p_value, std_err = stats.linregress(
+        x_numeric.flatten(), y_clean)
+    
+    # Calculate trend line for the full range of x values
+    full_x_numeric = np.arange(len(x))
+    line = slope * full_x_numeric + intercept
+    
+    return line
+
 # Function to visualize data
 def plot_data(df_combined):
-    plt.figure(figsize=(12,6))
+    plt.figure(figsize=(15, 8))
     
-    # Plot Binance and CoinGecko prices
-    plt.plot(df_combined['Open Time'], df_combined['Binance Price'], label='Binance Price', color='yellow', alpha=0.6)
-    plt.plot(df_combined['Open Time'], df_combined['CoinGecko Price'], label='CoinGecko Price', color='green', alpha=0.6)
+    # Ensure data is sorted by date
+    df_combined = df_combined.sort_values('Open Time')
     
-    # Plot moving averages
-    plt.plot(df_combined['Open Time'], df_combined['MA20 Average'], label='MA20 Average', color='purple', linestyle='--')
-    plt.plot(df_combined['Open Time'], df_combined['MA50 Average'], label='MA50 Average', color='blue', linestyle='--')
+    # Get x-axis data
+    x = df_combined['Open Time']
+    
+    # Calculate single trend line based on average price
+    average_trendline = calculate_trendline(x, df_combined['Average Price'].values)
+    
+    # Plot prices and moving averages
+    plt.plot(x, df_combined['Binance Price'], label='Binance Price', color='yellow', alpha=0.6)
+    plt.plot(x, df_combined['CoinGecko Price'], label='CoinGecko Price', color='green', alpha=0.6)
+    plt.plot(x, df_combined['MA20 Average'], label='MA20 Average', color='purple', linestyle='--')
+    plt.plot(x, df_combined['MA50 Average'], label='MA50 Average', color='blue', linestyle='--')
+    
+    # Plot trend lines
+    plt.plot(x, average_trendline, label='Binance Trend', color='red', linestyle='-.')
 
     # Add grid lines
     plt.grid(visible=True, linestyle='--', linewidth=0.5, color='grey', alpha=0.7)
 
-
-    plt.title(f"Comparison of Binance and CoinGecko Open Prices with Moving Averages")
+    plt.title("Cryptocurrency Price Comparison with Moving Averages and Trend Lines")
     plt.xlabel('Date')
     plt.ylabel('Price (USDT)')
     plt.legend()
+    plt.tight_layout()
+
+     # Generate filename with current timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f'crypto_analysis_{timestamp}.png'
+    
+    # Save the plot
+    plt.savefig(filename, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as: {filename}")
+
     plt.show()
 
 # Main function to orchestrate the process
