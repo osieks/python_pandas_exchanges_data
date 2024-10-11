@@ -37,6 +37,9 @@ env/
 *.jpeg
 *.pdf
 
+# Exception for sample plot
+!sample_plot.png
+
 # Operating System
 .DS_Store
 Thumbs.db
