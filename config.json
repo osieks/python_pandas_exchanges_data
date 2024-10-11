@@ -1,0 +1,14 @@
+{
+    "moving_averages": {
+        "short_term": 20,
+        "long_term": 100
+    },
+    "coins": {
+        "BTCUSDT": "bitcoin",
+        "ETHUSDT": "ethereum",
+        "XRPUSDT": "ripple"
+    },
+    "date_range": {
+        "days": 200
+    }
+}

@@ -44,7 +44,7 @@ The script will:
 
 The script generates:
 - A real-time plot displayed on screen
-- A saved PNG file named `crypto_analysis_YYYYMMDD_HHMMSS.png`
+- A saved PNG file named `CRYPTO_analysis_YYYYMMDD_HHMMSS.png`
 
 ## Configuration
 
@@ -52,6 +52,26 @@ By default, the script analyzes BTC/USDT. To analyze different pairs, modify the
 - `symbol = "BTCUSDT"` (for Binance)
 - `symbol_id = "bitcoin"` (for CoinGecko)
 
+The script uses a config.json file to configure parameters such as moving averages, coins, and date range. Here’s an example config.json file:
+```json
+
+{
+    "moving_averages": {
+        "short_term": 20,
+        "long_term": 50
+    },
+    "coins": {
+        "BTCUSDT": "bitcoin",
+        "ETHUSDT": "ethereum",
+        "XRPUSDT": "ripple"
+    },
+    "date_range": {
+        "days": 100
+    }
+}
+```
+
+By default, the script analyzes BTC/USDT. To analyze different pairs, modify the coins section in config.json.
 ## Sample Output
 
 ![Sample Plot](sample_plot.png)
