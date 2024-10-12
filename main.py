@@ -116,7 +116,7 @@ def plot_data(df_combined, short_term_avg, long_term_avg, coin_coingecko):
     plt.plot(x, df_combined[f'MA{short_term_avg} Average'], label=f'MA{short_term_avg} Average', color='purple', linestyle='--')
     plt.plot(x, df_combined[f'MA{long_term_avg} Average'], label=f'MA{long_term_avg} Average', color='blue', linestyle='--')
     
-    plt.plot(x, average_trendline, label='Binance Trend', color='red', linestyle='-.')
+    plt.plot(x, average_trendline, label='Trend Line', color='red', linestyle='-.')
     plt.grid(visible=True, linestyle='--', linewidth=0.5, color='grey', alpha=0.7)
 
     plt.title(f"{coin_coingecko} price comparison with Moving Averages and Trend Lines")
